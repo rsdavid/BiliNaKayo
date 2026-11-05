@@ -1,0 +1,47 @@
+name: Post to BiliNaKayo
+
+on:
+  schedule:
+    - cron: "7 * * * *"   # every hour at minute 7 (GitHub's clock is UTC, but this runs every hour anyway)
+  workflow_dispatch:       # lets you press "Run workflow" by hand to test
+
+concurrency:
+  group: bilinakayo-post
+  cancel-in-progress: false
+
+permissions:
+  contents: write          # so the bot can mark products as posted in data/products.csv
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Install Python packages
+        run: pip install -r requirements.txt
+
+      - name: Make the video and post it
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ACTIVE_HOURS: ${{ vars.ACTIVE_HOURS }}
+        run: python main.py ${{ github.event_name == 'workflow_dispatch' && '--force' || '' }}
+
+      - name: Save the updated queue
+        if: always()
+        run: |
+          git config user.name "bilinakayo-bot"
+          git config user.email "bilinakayo-bot@users.noreply.github.com"
+          git add data/products.csv
+          git diff --cached --quiet || (git commit -m "Update product queue" && git push)
