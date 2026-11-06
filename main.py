@@ -30,11 +30,12 @@ SAMPLE = {
     "notes": "",
 }
 
+character, color = config.pick_look()
+print(f"Using {character['name']} on {color['bg']}")
 
 def in_active_hours():
     start, end = (int(x) for x in config.ACTIVE_HOURS.split("-"))
     return start <= datetime.now(ZoneInfo(config.TIMEZONE)).hour < end
-
 
 def run(args):
     if not args.dry_run and not args.force and not in_active_hours():
