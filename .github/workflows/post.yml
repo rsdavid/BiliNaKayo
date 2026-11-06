@@ -2,7 +2,7 @@ name: Post to BiliNaKayo
 
 on:
   schedule:
-    - cron: "23 * * * *"   # every hour at minute 21 (GitHub's clock is UTC, but this runs every hour anyway)
+    - cron: "23 * * * *"   # every hour at minute 23 (GitHub's clock is UTC, but this runs every hour anyway)
   workflow_dispatch:       # lets you press "Run workflow" by hand to test
 
 concurrency:
