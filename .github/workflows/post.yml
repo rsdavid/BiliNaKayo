@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write          # so the bot can mark products as posted in data/products.csv
+  contents: write          # so the bot can mark products as posted in data/products.csv and remember the last mascot
 
 jobs:
   post:
@@ -43,5 +43,5 @@ jobs:
         run: |
           git config user.name "bilinakayo-bot"
           git config user.email "bilinakayo-bot@users.noreply.github.com"
-          git add data/products.csv
+          git add data/products.csv data/last_character.txt
           git diff --cached --quiet || (git commit -m "Update product queue" && git push)
