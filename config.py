@@ -3,6 +3,32 @@
 Secrets (Facebook token, Claude key) are read from environment variables.
 On GitHub they are stored under Settings > Secrets - never type them in this file.
 """
+import random
+
+# Original mascot characters (name, look, personality) used in the video script and visuals
+CHARACTERS = [
+    {"name": "Kayo",  "look": "a cheerful round chick in a tiny shopping bag", "voice_style": "excited"},
+    {"name": "Mang Bili", "look": "a friendly sari-sari store uncle with a big smile", "voice_style": "warm"},
+    {"name": "Ate Deals", "look": "a savvy girl with a bargain tag necklace", "voice_style": "upbeat"},
+    {"name": "Boss Tipid", "look": "a chubby piggy bank wearing sunglasses", "voice_style": "cool"},
+    {"name": "Lola Sulit", "look": "a sweet grandma holding a basket of finds", "voice_style": "gentle"},
+]
+
+# Background colors (hex) with a matching text color for readability
+COLORS = [
+    {"bg": "#FF6B6B", "text": "#FFFFFF"},  # coral
+    {"bg": "#FFD93D", "text": "#222222"},  # sunny yellow
+    {"bg": "#6BCB77", "text": "#FFFFFF"},  # fresh green
+    {"bg": "#4D96FF", "text": "#FFFFFF"},  # sky blue
+    {"bg": "#B983FF", "text": "#FFFFFF"},  # purple
+    {"bg": "#FF9F45", "text": "#222222"},  # orange
+]
+
+def pick_look(avoid_last=None):
+    """Return a random (character, color), avoiding repeating the last character."""
+    pool = [c for c in CHARACTERS if c["name"] != avoid_last] or CHARACTERS
+    return random.choice(pool), random.choice(COLORS)
+
 import os
 from pathlib import Path
 
