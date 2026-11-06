@@ -1,3 +1,7 @@
+from zoneinfo import ZoneInfo
+from datetime import datetime
+now = datetime.now(ZoneInfo("Asia/Manila"))
+
 """Picks the next product, makes the cartoon video, and posts it to the BiliNaKayo! Facebook Page.
 
 Run by GitHub Actions every hour. You can also run it by hand:
