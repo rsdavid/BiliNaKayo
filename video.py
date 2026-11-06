@@ -267,7 +267,11 @@ def chunk_times(text, start, span):
 
 
 # --- one frame ------------------------------------------------------------------
-def draw_frame(t, c):
+def draw_frame(t, c, poster=False):
+    """poster=True draws the 'finished' look (hook, product card, price) with no subtitles or button.
+    It is used as the very first frame and as the Facebook thumbnail, so the product is always visible."""
+    if poster:
+        t = 2.0
     img = c["bg"].copy()
     d = ImageDraw.Draw(img)
     draw_confetti(d, c["confetti"], t, c["confetti_colour"])
@@ -292,15 +296,16 @@ def draw_frame(t, c):
     if t > 1.2:
         draw_lines(d, c["title_lines"], font(54), W // 2, 1262, sw=6)
 
-    for a, b, text in c["subs"]:
-        if a <= t < b:
-            draw_subtitle(d, text)
-            break
+    if not poster:
+        for a, b, text in c["subs"]:
+            if a <= t < b:
+                draw_subtitle(d, text)
+                break
 
-    if t >= c["cta_start"]:
-        draw_cta(d, t - c["cta_start"])
+        if t >= c["cta_start"]:
+            draw_cta(d, t - c["cta_start"])
 
-    draw_mascot(d, 210, 1760, t, c["talk_start"] <= t < c["talk_end"], 0.8)
+    draw_mascot(d, 210, 1760, t, (not poster) and c["talk_start"] <= t < c["talk_end"], 0.8)
     return img
 
 
@@ -373,6 +378,14 @@ def render(product, copy, out_path):
             "cta_start": max(duration - 2.6, 3.0),
         }
 
+        # Thumbnail: the "finished" look with the product image. Saved next to the video as a .jpg
+        # and also used as the very first frame, because Facebook often takes the first frame as the cover.
+        poster = draw_frame(0, ctx, poster=True)
+        try:
+            poster.convert("RGB").save(out_path.with_suffix(".jpg"), quality=92)
+        except Exception as exc:
+            print(f"[video] could not save the thumbnail image ({exc})")
+
         frames = int(duration * FPS)
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
@@ -387,7 +400,8 @@ def render(product, copy, out_path):
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         try:
             for i in range(frames):
-                proc.stdin.write(draw_frame(i / FPS, ctx).tobytes())
+                frame = poster if i == 0 else draw_frame(i / FPS, ctx)
+                proc.stdin.write(frame.tobytes())
         except BrokenPipeError:
             pass
         finally:

@@ -79,6 +79,32 @@ def publish_reel(video_path, description, title=None):
     return video_id
 
 
+def set_thumbnail(video_id, image_path, tries=3):
+    """Best effort: ask Facebook to use the product picture as the cover. Never stops the run.
+    The video itself also starts with this picture, so the cover is right even if this step is refused."""
+    path = Path(image_path)
+    if not path.exists():
+        print("[facebook] no thumbnail image to upload; skipping")
+        return False
+    for attempt in range(1, tries + 1):
+        try:
+            with open(path, "rb") as fh:
+                r = requests.post(
+                    f"{GRAPH}/{video_id}/thumbnails",
+                    data={"is_preferred": "true", "access_token": config.FB_PAGE_TOKEN},
+                    files={"source": (path.name, fh, "image/jpeg")},
+                    timeout=60,
+                )
+            _check(r, "setting the thumbnail")
+            print("[facebook] thumbnail set")
+            return True
+        except Exception as exc:
+            print(f"[facebook] thumbnail attempt {attempt}/{tries} failed: {exc}")
+            time.sleep(8)  # a brand-new reel may need a few seconds before it accepts a thumbnail
+    print("[facebook] could not set a custom thumbnail; the first frame of the video shows the product instead")
+    return False
+
+
 def add_comment(video_id, message, tries=4):
     """Post the affiliate link as the first comment. Returns True on success."""
     for attempt in range(1, tries + 1):

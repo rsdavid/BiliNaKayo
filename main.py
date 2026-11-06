@@ -69,6 +69,8 @@ def run(args):
     products.mark_posted(product, video_id)  # save right away so a later hiccup can never cause a double post
     products.save_queue(rows)
 
+    facebook.set_thumbnail(video_id, out.with_suffix(".jpg"))
+
     if not facebook.add_comment(video_id, f"Bili na kayo! 👉 {product['link']}"):
         print(f"WARNING: could not add the link comment. Add this link by hand: {product['link']}")
     return 0
